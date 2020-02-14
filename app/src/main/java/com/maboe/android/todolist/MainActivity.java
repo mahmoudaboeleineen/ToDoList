@@ -1,11 +1,8 @@
 package com.maboe.android.todolist;
 
-import android.annotation.TargetApi;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
@@ -17,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.View;
-import android.widget.FrameLayout;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.maboe.android.todolist.database.AppDatabase;
@@ -30,16 +26,14 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemClickListener {
 
-    // Constant for logging
     private static final String TAG = MainActivity.class.getSimpleName();
-    // Member variables for the adapter and RecyclerView
 
     private RecyclerView mRecyclerView;
     private TaskAdapter mAdapter;
-
     private List<TaskEntry> mTaskEntries;
-
     private AppDatabase mDb;
+    private FloatingActionButton fabButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +62,20 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
         mRecyclerView.addItemDecoration(decoration);
         //       mRecyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
         mTaskEntries = new ArrayList<>();
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy < 0 && !fabButton.isShown())
+                    fabButton.show();
+                else if (dy > 0 && fabButton.isShown())
+                    fabButton.hide();
+            }
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+        });
 
         /*
          Add a touch helper to the RecyclerView to recognize when a user swipes to delete an item.
@@ -106,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
          Attach an OnClickListener to it, so that when it's clicked, a new intent will be created
          to launch the AddTaskActivity.
          */
-        FloatingActionButton fabButton = findViewById(R.id.fab);
+        fabButton = findViewById(R.id.fab);
 
         fabButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -120,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
         mDb = AppDatabase.getInstance(getApplicationContext());
         setUpViewModel();
     }
+
 
     private void setUpViewModel() {
         MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
